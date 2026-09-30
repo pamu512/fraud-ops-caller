@@ -35,7 +35,9 @@ function claimsPath(): string {
 let memory: StoreFile | null = null;
 
 function load(): StoreFile {
-  if (memory) return memory;
+  // ponytail: always re-read disk. Node 20/tsx and Next workers can hold a
+  // second isolate of this module; a cached empty store would miss a halt
+  // another isolate already persisted. Upgrade: flock or sqlite if call volume grows.
   try {
     const raw = JSON.parse(readFileSync(claimsPath(), "utf8")) as StoreFile;
     if (!raw || typeof raw !== "object" || !raw.byKey || !raw.haltByCase) {
